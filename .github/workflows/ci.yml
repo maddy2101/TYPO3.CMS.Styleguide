@@ -1,0 +1,37 @@
+name: CI
+
+on: [push, pull_request]
+
+jobs:
+
+  integrity:
+    name: Integrity checks
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: CGL
+        run: Build/Scripts/runTests.sh -p ${{ matrix.php }} -s cgl
+
+  unit:
+    name: unit tests
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        php: [ '7.2', '7.3', '7.4' ]
+        branch: ['9', '10', 'master']
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          path: ${{ matrix.branch }}
+
+      - name: Install testing system
+        run: Build/Scripts/runTests.sh -p ${{ matrix.php }} -s composerInstall
+
+      - name: Lint PHP
+        run: Build/Scripts/runTests.sh -p ${{ matrix.php }} -s lint
+
+      - name: Run Unit Tests on PHP ${{ matrix.php }} for branch ${{ matrix.branch }}
+        run: Build/Scripts/runTests.sh -p ${{ matrix.php }} -s unit
